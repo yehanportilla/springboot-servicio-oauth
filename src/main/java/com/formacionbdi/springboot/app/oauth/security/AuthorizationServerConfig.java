@@ -10,7 +10,6 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
@@ -24,21 +23,32 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	@Autowired
 	private AuthenticationManager authenticationManager;
 
-	/**
-	 * authenticationManager debemos registrarlo en el AuthorizationServer usamos
-	 * los 3 metodos
-	 */
 
+
+	/**
+	 * Metodo que genera los permisos que va atener nuestros endpoint del servidor de autorizacion 
+	 * de oauth2 generar el token y validar el token
+	 */
 	@Override
 	public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-
-		super.configure(security);
+         
+		security.tokenKeyAccess("permitAll()")//end poin para generar el token
+		.checkTokenAccess("isAuthenticated()");// ruta para validar el token, que el cliente este autenticado
+		
 	}
 
+	/**
+	 * Metodo para registrar clientes(front end) que se van acomunicar con nuestro servicio
+	 */
 	@Override
 	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-
-		super.configure(clients);
+		
+		clients.inMemory().withClient("frontendapp") //identificador de nuestra aplicacion
+		.secret(passwordEncoder.encode("12345")) // contraseña de nuestra aplicacion encriptada con passwordEncoder
+		.scopes("read","write") // alcanze o permisos de nuestra aplicacion cliente
+		.authorizedGrantTypes("password", "refresh_token") // tipo de consecion, como se optiene el token. con password
+        .accessTokenValiditySeconds(3600) // tiempo de valides del token antes de que caduque
+        .refreshTokenValiditySeconds(3600); // tiempo de refres token
 	}
 
 	/**
