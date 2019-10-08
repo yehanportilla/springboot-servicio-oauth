@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -29,7 +30,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	@Autowired
 	private InfoAdicionalToken infoAdicionalToken;
 
-
+    @Autowired
+    private Environment env; // para leer variables del archivo de configuracion boostrap.properties
 
 	/**
 	 * Metodo que genera los permisos que va atener nuestros endpoint del servidor de autorizacion 
@@ -49,8 +51,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	@Override
 	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
 		
-		clients.inMemory().withClient("frontendapp") //identificador de nuestra aplicacion
-		.secret(passwordEncoder.encode("12345")) // contraseña de nuestra aplicacion encriptada con passwordEncoder
+		clients.inMemory().withClient(env.getProperty("config.security.oauth.client.id")) //identificador de nuestra aplicacion
+		.secret(passwordEncoder.encode(env.getProperty("config.security.oauth.client.secret"))) // contraseña de nuestra aplicacion encriptada con passwordEncoder
 		.scopes("read","write") // alcanze o permisos de nuestra aplicacion cliente
 		.authorizedGrantTypes("password", "refresh_token") // tipo de consecion, como se optiene el token. con password
         .accessTokenValiditySeconds(3600) // tiempo de valides del token antes de que caduque
@@ -85,7 +87,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	@Bean
 	public JwtAccessTokenConverter accesTokenConverter() {
 		JwtAccessTokenConverter tokenConverter = new JwtAccessTokenConverter();
-		tokenConverter.setSigningKey("algun_codigo_secreto_aeiou");
+		tokenConverter.setSigningKey(env.getProperty("config.security.oauth.jwt.key"));
 		
 		return tokenConverter;
 	}
