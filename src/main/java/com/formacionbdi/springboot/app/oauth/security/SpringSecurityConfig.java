@@ -3,6 +3,7 @@ package com.formacionbdi.springboot.app.oauth.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -14,6 +15,10 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Autowired
 	private UserDetailsService usuarioServicio;
+	
+	@Autowired
+	private AuthenticationEventPublisher eventPublisher;
+	
 
 	/**
 	 * Metodo que encripta la contraseña con Bean para que se guarde en el
@@ -34,7 +39,8 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired // para que se pueda pasar inyectar mediante el metodo.
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 
-		auth.userDetailsService(this.usuarioServicio).passwordEncoder(passwordEncoder());
+		auth.userDetailsService(this.usuarioServicio).passwordEncoder(passwordEncoder())
+		.and().authenticationEventPublisher(eventPublisher);
 
 	}
 
